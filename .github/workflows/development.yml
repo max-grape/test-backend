@@ -1,8 +1,9 @@
-name: release
+name: development
 
 on:
   push:
-    branches: [ master ]
+    branches-ignore:
+      - master
 
 env:
   REGISTRY: ghcr.io
@@ -47,19 +48,10 @@ jobs:
       - name: stop acceptance tests
         run: make down
 
-  publish:
-    needs: acceptance
-    runs-on: self-hosted
-    steps:
-      - name: docker login
-        run: docker login -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ${{ env.REGISTRY }}
-
-      - name: docker push
-        run: docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}
-
   build_cleanup:
     name: build cleanup
-    needs: publish
+    if: ${{ always() }}
+    needs: acceptance
     runs-on: self-hosted
     steps:
       - name: delete local docker image
@@ -67,14 +59,3 @@ jobs:
 
       - name: delete local docker dangling images
         run: docker image prune -f
-
-  deploy:
-    needs: publish
-    runs-on: self-hosted
-    steps:
-      - name: checkout repo
-        uses: actions/checkout@v2
-
-      - name: deploy
-        run: IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE }} \
-              docker -H ${{ secrets.HOST }} stack deploy --with-registry-auth -c deploy/production.yml test

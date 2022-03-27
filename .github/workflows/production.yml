@@ -1,0 +1,79 @@
+name: production
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE: ${{ github.repository }}:${{ github.sha }}
+
+jobs:
+  unit:
+    runs-on: self-hosted
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
+
+      - name: unit tests
+        run: make unit
+
+  build:
+    needs: unit
+    runs-on: self-hosted
+    steps:
+      - name: build
+        run: make build IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE }}
+
+  acceptance:
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
+
+      - name: acceptance tests
+        run: make acceptance IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE }}
+
+  acceptance_cleanup:
+    name: acceptance cleanup
+    if: ${{ always() }}
+    needs: acceptance
+    runs-on: self-hosted
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
+
+      - name: stop acceptance tests
+        run: make down
+
+  publish:
+    needs: acceptance
+    runs-on: self-hosted
+    steps:
+      - name: docker login
+        run: docker login -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ${{ env.REGISTRY }}
+
+      - name: docker push
+        run: docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}
+
+  build_cleanup:
+    name: build cleanup
+    needs: publish
+    runs-on: self-hosted
+    steps:
+      - name: delete local docker image
+        run: docker rmi -f ${{ env.REGISTRY }}/${{ env.IMAGE }}
+
+      - name: delete local docker dangling images
+        run: docker image prune -f
+
+  deploy:
+    needs: publish
+    runs-on: self-hosted
+    environment: production
+    steps:
+      - name: deploy
+        run: IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE }} \
+              docker -H ${{ secrets.DEPLOY_HOST }} stack deploy --with-registry-auth -c deploy/production.yml test
