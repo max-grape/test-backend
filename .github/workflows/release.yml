@@ -32,3 +32,9 @@ jobs:
 
       - name: deploy
         run: IMAGE=${{ env.IMAGE }} docker -H ${{ secrets.HOST }} stack deploy --with-registry-auth -c deploy/production.yml test
+
+  cleanup:
+    runs-on: self-hosted
+    steps:
+      - name: stop acceptance tests
+        run: make down
