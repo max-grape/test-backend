@@ -1,11 +1,18 @@
 version: '2.1'
 
+networks:
+  test-backend:
+
 services:
   app:
     image: ${IMAGE}
+    networks:
+      - test-backend
 
   acceptance:
     image: ${IMAGE_GO}
+    networks:
+      - test-backend
     volumes:
       - ../:${CWD}
     working_dir: ${CWD}
