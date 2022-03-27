@@ -36,6 +36,7 @@ jobs:
         run: make acceptance IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE }}
 
   acceptance_cleanup:
+    name: acceptance cleanup
     if: ${{ always() }}
     needs: acceptance
     runs-on: self-hosted
@@ -57,6 +58,7 @@ jobs:
         run: docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}
 
   build_cleanup:
+    name: build cleanup
     needs: publish
     runs-on: self-hosted
     steps:
