@@ -2,7 +2,7 @@
 
 ## TODO:
 
-- use shorten commit sha as docker image tag?  
+- use shorten commit sha as docker image tag  
   don't like crutches like that:
   ```
   - name: Set outputs

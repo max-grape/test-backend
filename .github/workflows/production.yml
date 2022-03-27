@@ -75,5 +75,4 @@ jobs:
     environment: production
     steps:
       - name: deploy
-        run: IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE }} \
-              docker -H ${{ secrets.DEPLOY_HOST }} stack deploy --with-registry-auth -c deploy/production.yml test
+        run: IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE }} docker -H ${{ secrets.DEPLOY_HOST }} stack deploy --with-registry-auth -c deploy/production.yml test
