@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE: ${{ env.REGISTRY }}/${{ github.repository }}:${GITHUB_SHA:0:12}
+  IMAGE: ${{ github.repository }}:${GITHUB_SHA:0:12}
 
 jobs:
   release:
@@ -19,19 +19,20 @@ jobs:
         run: make unit
 
       - name: build
-        run: IMAGE=${{ env.IMAGE }} make build
+        run: IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE }} make build
 
       - name: acceptance tests
-        run: IMAGE=${{ env.IMAGE }} make acceptance
+        run: IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE }} make acceptance
 
       - name: docker login
         run: echo ${{ secrets.PAT }} | docker login ${{ env.REGISTRY }} -u ${GITHUB_REPOSITORY_OWNER} --password-stdin
 
       - name: docker push
-        run: docker push ${{ env.IMAGE }}
+        run: docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}
 
       - name: deploy
-        run: IMAGE=${{ env.IMAGE }} docker -H ${{ secrets.HOST }} stack deploy --with-registry-auth -c deploy/production.yml test
+        run: IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE }} \
+              docker -H ${{ secrets.HOST }} stack deploy --with-registry-auth -c deploy/production.yml test
 
   cleanup:
     runs-on: self-hosted
