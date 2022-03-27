@@ -35,7 +35,7 @@ jobs:
       - name: acceptance tests
         run: make acceptance IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE }}
 
-  cleanup:
+  acceptance_cleanup:
     if: ${{ always() }}
     needs: acceptance
     runs-on: self-hosted
@@ -55,6 +55,13 @@ jobs:
 
       - name: docker push
         run: docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}
+
+  build_cleanup:
+    needs: publish
+    runs-on: self-hosted
+    steps:
+      - name: delete local docker image
+        run: docker rmi -f ${{ env.REGISTRY }}/${{ env.IMAGE }}
 
   deploy:
     needs: publish
