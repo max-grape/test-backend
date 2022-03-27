@@ -1,0 +1,32 @@
+name: release
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  release:
+    runs-on: self-hosted
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
+
+      - name: unit tests
+        run: make unit
+
+      - name: build
+        run: REPO=${GITHUB_REPOSITORY} TAG=${GITHUB_SHA:0:12} make build
+
+      - name: acceptance tests
+        run: REPO=${GITHUB_REPOSITORY} TAG=${GITHUB_SHA:0:12} make acceptance
+
+      - name: docker login
+        run: echo ${{ secrets.PAT }} | docker login ghcr.io -u ${GITHUB_REPOSITORY_OWNER} --password-stdin
+
+      - name: docker push
+        run: docker push ghcr.io/${GITHUB_REPOSITORY}:${GITHUB_SHA:0:12}
+
+      - name: deploy
+        run: REPO=${GITHUB_REPOSITORY} TAG=${GITHUB_SHA:0:12} \
+              docker -H ${{ secrets.HOST }} stack deploy --with-registry-auth -c deploy/production.yml test

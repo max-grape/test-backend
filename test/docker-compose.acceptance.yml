@@ -1,0 +1,12 @@
+version: '2.1'
+
+services:
+  app:
+    image: ${IMAGE}:${TAG}
+
+  acceptance:
+    image: ${IMAGE_GO}
+    volumes:
+      - ../:${CWD}
+    working_dir: ${CWD}
+    command: /bin/sh -c "go test -v ./test/acceptance"

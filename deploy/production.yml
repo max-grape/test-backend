@@ -1,0 +1,10 @@
+version: '3.4'
+
+services:
+  test-backend:
+    image: ghcr.io/${REPO}:${TAG}
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
