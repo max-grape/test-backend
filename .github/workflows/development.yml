@@ -10,7 +10,17 @@ env:
   IMAGE: ${{ github.repository }}:${{ github.sha }}
 
 jobs:
+  lint:
+    runs-on: self-hosted
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
+
+      - name: code analysis
+        run: make lint
+
   unit:
+    needs: lint
     runs-on: self-hosted
     steps:
       - name: checkout repo
