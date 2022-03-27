@@ -63,6 +63,9 @@ jobs:
       - name: delete local docker image
         run: docker rmi -f ${{ env.REGISTRY }}/${{ env.IMAGE }}
 
+      - name: delete local docker dangling images
+        run: docker image prune -f
+
   deploy:
     needs: publish
     runs-on: self-hosted
