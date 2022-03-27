@@ -25,7 +25,7 @@ jobs:
         run: IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE }} make acceptance
 
       - name: docker login
-        run: echo ${{ secrets.PAT }} | docker login ${{ env.REGISTRY }} -u ${GITHUB_REPOSITORY_OWNER} --password-stdin
+        run: echo ${{ secrets.PAT }} | docker login ${{ env.REGISTRY }} -u $GITHUB_REPOSITORY_OWNER --password-stdin
 
       - name: docker push
         run: docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}
@@ -35,6 +35,8 @@ jobs:
               docker -H ${{ secrets.HOST }} stack deploy --with-registry-auth -c deploy/production.yml test
 
   cleanup:
+    needs:
+      - release
     runs-on: self-hosted
     steps:
       - name: stop acceptance tests
