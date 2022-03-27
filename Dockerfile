@@ -19,5 +19,5 @@ RUN apk add -U curl tzdata && \
     apk del -v tzdata && \
     rm -rf /var/cache/apk/*
 COPY --from=0 $CWD/app ./app
-HEALTHCHECK --interval=10s --timeout=2s CMD ["curl", "http://127.0.0.1:8090/health", "| grep -w \"healthy\""]
+HEALTHCHECK --interval=10s --timeout=2s CMD curl 127.0.0.1:8090/health | grep -w "healthy"
 CMD ["./app"]
