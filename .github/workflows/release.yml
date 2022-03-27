@@ -58,10 +58,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: docker push
-        uses: docker/build-push-action@v2
-        with:
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE }}
+        run: docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}
 
   deploy:
     needs: publish
