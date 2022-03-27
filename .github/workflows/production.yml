@@ -87,6 +87,9 @@ jobs:
       - name: checkout repo
         uses: actions/checkout@v2
 
+      - name: docker login
+        run: docker login -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ${{ env.REGISTRY }}
+
       - name: deploy
         run: |
           IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE }} \
