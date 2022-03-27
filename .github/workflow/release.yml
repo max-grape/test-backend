@@ -2,8 +2,11 @@ name: release
 
 on:
   push:
-    branches:
-      - master
+    branches: [ master ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE: ${{ env.REGISTRY }}/${{ github.repository }}:${GITHUB_SHA:0:12}
 
 jobs:
   release:
@@ -16,17 +19,16 @@ jobs:
         run: make unit
 
       - name: build
-        run: REPO=${GITHUB_REPOSITORY} TAG=${GITHUB_SHA:0:12} make build
+        run: IMAGE=${{ env.IMAGE }} make build
 
       - name: acceptance tests
-        run: REPO=${GITHUB_REPOSITORY} TAG=${GITHUB_SHA:0:12} make acceptance
+        run: IMAGE=${{ env.IMAGE }} make acceptance
 
       - name: docker login
-        run: echo ${{ secrets.PAT }} | docker login ghcr.io -u ${GITHUB_REPOSITORY_OWNER} --password-stdin
+        run: echo ${{ secrets.PAT }} | docker login ${{ env.REGISTRY }} -u ${GITHUB_REPOSITORY_OWNER} --password-stdin
 
       - name: docker push
-        run: docker push ghcr.io/${GITHUB_REPOSITORY}:${GITHUB_SHA:0:12}
+        run: docker push ${{ env.IMAGE }}
 
       - name: deploy
-        run: REPO=${GITHUB_REPOSITORY} TAG=${GITHUB_SHA:0:12} \
-              docker -H ${{ secrets.HOST }} stack deploy --with-registry-auth -c deploy/production.yml test
+        run: IMAGE=${{ env.IMAGE }} docker -H ${{ secrets.HOST }} stack deploy --with-registry-auth -c deploy/production.yml test

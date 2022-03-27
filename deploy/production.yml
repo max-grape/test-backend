@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   test-backend:
-    image: ghcr.io/${REPO}:${TAG}
+    image: ${IMAGE}
     deploy:
       replicas: 2
       update_config:
