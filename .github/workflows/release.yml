@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE: ${{ github.repository }}:${{ github.sha:0:12 }}
+  IMAGE: ${{ github.repository }}:${{ github.sha }}
 
 jobs:
   unit:
