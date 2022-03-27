@@ -85,7 +85,7 @@ jobs:
 
   deploy:
     name: docker image deploy
-    needs: publish
+    needs: build_cleanup
     runs-on: self-hosted
     environment: production
     steps:

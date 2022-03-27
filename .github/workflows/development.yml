@@ -11,6 +11,7 @@ env:
 
 jobs:
   lint:
+    name: code analysis
     runs-on: self-hosted
     steps:
       - name: checkout repo
@@ -20,6 +21,7 @@ jobs:
         run: make lint
 
   unit:
+    name: unit tests
     needs: lint
     runs-on: self-hosted
     steps:
@@ -37,6 +39,7 @@ jobs:
         run: make build IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE }}
 
   acceptance:
+    name: acceptance tests
     needs: build
     runs-on: self-hosted
     steps:
@@ -47,7 +50,7 @@ jobs:
         run: make acceptance IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE }}
 
   acceptance_cleanup:
-    name: acceptance cleanup
+    name: acceptance tests cleanup
     if: ${{ always() }}
     needs: acceptance
     runs-on: self-hosted
