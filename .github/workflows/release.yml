@@ -9,7 +9,7 @@ env:
   IMAGE: ${{ github.repository }}:${GITHUB_SHA:0:12}
 
 jobs:
-  release:
+  unit:
     runs-on: self-hosted
     steps:
       - name: checkout repo
@@ -18,26 +18,58 @@ jobs:
       - name: unit tests
         run: make unit
 
+  build:
+    needs: unit
+    runs-on: self-hosted
+    steps:
       - name: build
         run: IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE }} make build
+
+  acceptance:
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
 
       - name: acceptance tests
         run: IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE }} make acceptance
 
+  cleanup:
+    if: ${{ always() }}
+    needs: acceptance
+    runs-on: self-hosted
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
+
+      - name: stop acceptance tests
+        run: make down
+
+  publish:
+    needs: acceptance
+    runs-on: self-hosted
+    steps:
       - name: docker login
-        run: echo ${{ secrets.PAT }} | docker login ${{ env.REGISTRY }} -u $GITHUB_REPOSITORY_OWNER --password-stdin
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: docker push
-        run: docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE }}
+
+  deploy:
+    needs: publish
+    runs-on: self-hosted
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
 
       - name: deploy
         run: IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE }} \
               docker -H ${{ secrets.HOST }} stack deploy --with-registry-auth -c deploy/production.yml test
-
-  cleanup:
-    needs:
-      - release
-    runs-on: self-hosted
-    steps:
-      - name: stop acceptance tests
-        run: make down
