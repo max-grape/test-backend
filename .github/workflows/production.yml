@@ -74,11 +74,10 @@ jobs:
     runs-on: self-hosted
     environment: production
     steps:
-      - name: debug1
-        run: pwd
-
-      - name: debug2
-        run: ls -lah
+      - name: checkout repo
+        uses: actions/checkout@v2
 
       - name: deploy
-        run: IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE }} docker -H ${{ secrets.DEPLOY_HOST }} stack deploy --with-registry-auth -c deploy/production.yml test
+        run: |
+          IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE }} \
+          docker -H ${{ secrets.DEPLOY_HOST }} stack deploy --with-registry-auth -c deploy/production.yml test
